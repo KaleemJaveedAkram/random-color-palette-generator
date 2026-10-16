@@ -1,0 +1,62 @@
+import './style.css'
+
+const app = document.querySelector('#app')
+const seed = ['#FF6B6B', '#FFD166', '#06D6A0', '#118AB2', '#073B4C']
+let colors = seed.map((hex) => ({ hex, locked: false }))
+let mode = 'Fresh mix'
+let toastTimeout
+
+const modes = ['Fresh mix', 'Pastel', 'Earthy', 'Vivid']
+const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+const hslToHex = (h, s, l) => {
+  s /= 100; l /= 100
+  const k = n => (n + h / 30) % 12
+  const a = s * Math.min(l, 1 - l)
+  const f = n => { const color = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))); return Math.round(255 * color).toString(16).padStart(2, '0') }
+  return `#${f(0)}${f(8)}${f(4)}`.toUpperCase()
+}
+const randomHex = () => {
+  const h = rand(0, 359)
+  if (mode === 'Pastel') return hslToHex(h, rand(58, 82), rand(76, 89))
+  if (mode === 'Earthy') return hslToHex(rand(18, 145), rand(24, 52), rand(28, 69))
+  if (mode === 'Vivid') return hslToHex(h, rand(78, 100), rand(43, 61))
+  return hslToHex(h, rand(50, 88), rand(38, 74))
+}
+const icon = (name, cls = 'size-5') => {
+  const paths = {
+    logo: '<path d="M12 3a9 9 0 1 0 9 9c0-1.1-.9-2-2-2h-1.6c-.8 0-1.4-.6-1.4-1.4 0-.4.2-.8.5-1.1.3-.3.5-.7.5-1.2A3.3 3.3 0 0 0 13.7 3H12Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/>',
+    refresh: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5A7 7 0 0 0 18.4 15"/>',
+    lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/>',
+    unlock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.7-1.5"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+    chevron: '<path d="m7 10 5 5 5-5"/>',
+    keyboard: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M8 13h.01M12 13h.01M16 13h.01M7 16h10"/>',
+    check: '<path d="m5 12 4 4L19 6"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>',
+  }
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`
+}
+const readable = hex => { const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16); return (r*299+g*587+b*114)/1000 > 155 ? '#20201E' : '#FFFFFF' }
+
+function render() {
+  app.innerHTML = `<main class="mx-auto flex min-h-screen max-w-[1440px] flex-col px-5 sm:px-8 lg:px-12"><header class="flex items-center justify-between border-b border-[#e8e8e3] py-5"><a class="flex items-center gap-2.5 text-[#22221f] no-underline" href="#"><span class="grid size-10 place-items-center rounded-xl bg-[#20201e] text-white">${icon('logo', 'size-5')}</span><span class="display-font text-xl font-bold tracking-tight">hue<span class="text-[#fa7764]">.</span></span></a><nav class="hidden items-center gap-8 text-sm font-semibold text-[#85857c] sm:flex"><a class="text-[#252520]" href="#studio">Studio</a><a class="transition hover:text-[#252520]" href="#how">How it works</a><a class="transition hover:text-[#252520]" href="https://coolors.co" target="_blank" rel="noreferrer">Explore palettes ↗</a></nav><button id="about" class="rounded-lg px-3 py-2 text-sm font-semibold text-[#77776e] transition hover:bg-[#efefeb] hover:text-[#252520]">About</button></header><section class="flex flex-1 flex-col justify-center py-9 sm:py-12" id="studio"><div class="mb-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><div class="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f0eee8] px-3 py-1.5 text-[10px] font-extrabold tracking-[.14em] text-[#717168]">${icon('sun', 'size-3.5 text-[#f2a75c]')} COLOR PALETTE STUDIO</div><h1 class="display-font text-4xl font-bold tracking-[-.05em] text-[#252520] sm:text-5xl">Find your next <span class="text-[#fa7764]">favorite color.</span></h1><p class="mt-3 max-w-xl text-sm leading-6 text-[#85857c] sm:text-base">A little color inspiration, whenever you need it. Make a palette, lock what you love, and save it for later.</p></div><div class="relative flex items-center gap-2"><span class="mr-1 text-xs font-bold uppercase tracking-wider text-[#99998f]">Mood</span><button id="modeBtn" class="flex items-center gap-2 rounded-xl border border-[#e8e8e3] bg-white px-4 py-2.5 text-sm font-bold text-[#35352f] shadow-sm transition hover:border-[#c8c8bf]"><span>${mode}</span>${icon('chevron','size-4 text-[#96968d]')}</button><div id="modeMenu" class="absolute right-0 top-12 z-20 hidden w-40 overflow-hidden rounded-xl border border-[#e8e8e3] bg-white p-1 shadow-xl">${modes.map(m=>`<button data-mode="${m}" class="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold ${mode===m?'bg-[#f4f3ef] text-[#252520]':'text-[#77776e] hover:bg-[#f8f8f5]'}">${m}</button>`).join('')}</div></div></div><div class="grid min-h-[380px] grid-cols-2 gap-3 sm:min-h-[390px] sm:grid-cols-5 sm:gap-4" id="palette">${colors.map((color,i)=>`<article class="swatch ${color.locked?'locked':''} group relative flex min-h-[170px] cursor-pointer flex-col justify-end overflow-hidden rounded-2xl p-4 sm:min-h-0 sm:rounded-3xl sm:p-5" style="background:${color.hex};color:${readable(color.hex)}" data-copy="${i}" aria-label="Copy ${color.hex} to clipboard"><div class="absolute right-3 top-3 flex gap-1.5 sm:right-4 sm:top-4"><button data-lock="${i}" aria-label="${color.locked?'Unlock':'Lock'} color" class="grid size-9 place-items-center rounded-xl border border-current/20 bg-black/5 opacity-0 backdrop-blur-md transition hover:bg-black/10 group-hover:opacity-100 ${color.locked?'!opacity-100':''}">${icon(color.locked?'lock':'unlock','size-4')}</button></div><div class="mb-auto pt-1 text-xs font-bold uppercase tracking-[.14em] opacity-65">0${i+1}</div><div><button data-hex="${i}" class="display-font text-xl font-bold tracking-wide sm:text-2xl">${color.hex}</button><div class="mt-1 flex items-center justify-between"><span class="text-xs font-medium opacity-70">${color.locked?'Locked in':'Click to copy'}</span><span class="grid size-7 place-items-center rounded-lg border border-current/20 opacity-0 transition group-hover:opacity-100">${icon('copy','size-3.5')}</span></div></div></article>`).join('')}</div><div class="mt-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div class="flex flex-wrap items-center gap-2"><button id="generate" class="inline-flex items-center gap-2 rounded-xl bg-[#20201e] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#34342f]">${icon('refresh','size-4')} Generate palette</button><button id="copyAll" class="inline-flex items-center gap-2 rounded-xl border border-[#e8e8e3] bg-white px-4 py-3 text-sm font-bold text-[#4c4c45] transition hover:border-[#c8c8bf] hover:bg-[#fefefd]">${icon('copy','size-4')} Copy all</button><button id="export" class="inline-flex items-center gap-2 rounded-xl border border-[#e8e8e3] bg-white px-4 py-3 text-sm font-bold text-[#4c4c45] transition hover:border-[#c8c8bf] hover:bg-[#fefefd]">${icon('download','size-4')} Export CSS</button></div><p class="inline-flex items-center gap-2 text-xs font-medium text-[#929289]">${icon('keyboard','size-4')} Press <kbd class="rounded border border-[#e2e2dc] bg-white px-1.5 py-0.5 font-bold text-[#616158]">SPACE</kbd> to generate</p></div><div class="mt-10 grid gap-3 border-t border-[#e8e8e3] pt-6 sm:grid-cols-3" id="how"><div class="flex gap-3"><span class="grid size-8 shrink-0 place-items-center rounded-xl bg-[#f0eee8] text-sm">🎨</span><div><p class="text-sm font-bold text-[#45453e]">Generate</p><p class="mt-1 text-xs leading-5 text-[#929289]">Explore a fresh set of colors in one click.</p></div></div><div class="flex gap-3"><span class="grid size-8 shrink-0 place-items-center rounded-xl bg-[#f0eee8] text-sm">🔒</span><div><p class="text-sm font-bold text-[#45453e]">Lock</p><p class="mt-1 text-xs leading-5 text-[#929289]">Keep your favorites while the rest remix.</p></div></div><div class="flex gap-3"><span class="grid size-8 shrink-0 place-items-center rounded-xl bg-[#f0eee8] text-sm">📋</span><div><p class="text-sm font-bold text-[#45453e]">Take it with you</p><p class="mt-1 text-xs leading-5 text-[#929289]">Copy a color, the full palette, or CSS tokens.</p></div></div></div></section><footer class="flex items-center justify-between border-t border-[#e8e8e3] py-5 text-xs text-[#a2a299]"><span>Made with a little bit of color <span class="text-[#fa7764]">●</span></span><span>Good things come in palettes.</span></footer><div id="toast" class="pointer-events-none fixed bottom-7 left-1/2 z-30 hidden -translate-x-1/2 rounded-xl bg-[#20201e] px-4 py-3 text-sm font-semibold text-white shadow-xl"></div><div id="modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-[#181816]/35 p-5 backdrop-blur-sm"><div class="max-w-sm rounded-2xl border border-white bg-white p-7 shadow-2xl"><div class="mb-4 grid size-11 place-items-center rounded-xl bg-[#f0eee8] text-[#fa7764]">${icon('logo')}</div><h2 class="display-font text-2xl font-bold">A small studio for color.</h2><p class="mt-3 text-sm leading-6 text-[#77776e]">Hue is a playful palette generator for designers, makers, and anyone looking for a little inspiration. Generate, lock, copy, and make something lovely.</p><button id="closeModal" class="mt-6 w-full rounded-xl bg-[#20201e] py-3 text-sm font-bold text-white">Sounds good</button></div></div></main>`
+  document.querySelector('#generate').addEventListener('click', generate)
+  document.querySelector('#copyAll').addEventListener('click', copyAll)
+  document.querySelector('#export').addEventListener('click', exportCSS)
+  document.querySelector('#modeBtn').addEventListener('click', () => document.querySelector('#modeMenu').classList.toggle('hidden'))
+  document.querySelectorAll('[data-mode]').forEach(btn => btn.addEventListener('click', () => { mode = btn.dataset.mode; render() }))
+  document.querySelectorAll('[data-lock]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); colors[Number(btn.dataset.lock)].locked = !colors[Number(btn.dataset.lock)].locked; render() }))
+  document.querySelectorAll('[data-copy], [data-hex]').forEach(el => el.addEventListener('click', () => copyColor(colors[Number(el.dataset.copy ?? el.dataset.hex)].hex)))
+  document.querySelector('#about').addEventListener('click', () => document.querySelector('#modal').classList.replace('hidden','flex'))
+  document.querySelector('#closeModal').addEventListener('click', () => document.querySelector('#modal').classList.replace('flex','hidden'))
+  document.querySelector('#modal').addEventListener('click', e => { if (e.target.id === 'modal') e.currentTarget.classList.replace('flex','hidden') })
+}
+
+function generate() { colors = colors.map(c => c.locked ? c : ({ hex: randomHex(), locked: false })); render() }
+function toast(message) { const el = document.querySelector('#toast'); el.textContent = message; el.classList.remove('hidden'); el.classList.add('copy-toast'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('hidden'), 1800) }
+async function copyColor(hex) { try { await navigator.clipboard.writeText(hex); toast(`${hex} copied to clipboard`) } catch { toast(`Color: ${hex}`) } }
+async function copyAll() { const text = colors.map(c=>c.hex).join(', '); try { await navigator.clipboard.writeText(text); toast('Palette copied to clipboard') } catch { toast(text) } }
+function exportCSS() { const css = `:root {\n${colors.map((c,i)=>`  --color-${i+1}: ${c.hex};`).join('\n')}\n}\n`; const blob = new Blob([css], {type:'text/css'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'hue-palette.css'; link.click(); URL.revokeObjectURL(link.href); toast('Your CSS file is ready') }
+window.addEventListener('keydown', e => { if (e.code === 'Space' && !['BUTTON','INPUT','TEXTAREA'].includes(document.activeElement.tagName) && document.querySelector('#generate')) { e.preventDefault(); generate() } if (e.key === 'Escape') { const modal = document.querySelector('#modal'); if (modal?.classList.contains('flex')) modal.classList.replace('flex','hidden') } })
+render()
